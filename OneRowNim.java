@@ -143,42 +143,64 @@ public class OneRowNim extends TwoPlayerGame implements CLUIPlayableGame {
 
     public static void main(String args[]) {
         KeyboardReader kb = new KeyboardReader(); // Cria um leitor de teclado para entrada de dados
-        OneRowNim game = new OneRowNim(); // Inicializa o jogo com o número máximo de palitos
+        OneRowNim game = new OneRowNim(); // Inicializa o jogo com o numero maximo de palitos
 
-        // Pergunta ao usuário quantos jogadores de computador estão jogando
+        // Pergunta ao usuario quantos jogadores de computador estao jogando
         kb.report("Bem-vindo ao One Row Nim! Quantos computadores estao jogando (0, 1, ou 2)? ");
         int m = kb.getKeyboardInteger();
 
-        // Pergunta ao usuário contra qual tipo de jogador de computador ele deseja
-        // jogar
-        kb.report("Deseja jogar contra NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2)? ");
-        int playerType = kb.getKeyboardInteger();
-        IPlayer computerPlayer = null;
+        IPlayer computerPlayer1 = null;
+        IPlayer computerPlayer2 = null;
 
-        // Cria o jogador de computador com base na escolha do usuário
-        if (playerType == 1) {
-            computerPlayer = new NimPlayerBad(game);
-            kb.report("Voce escolheu jogar contra NimPlayerBad.\n");
-        } else if (playerType == 2) {
-            computerPlayer = new NimPlayerSuper(game);
-            kb.report("Voce escolheu jogar contra NimPlayerSuper.\n");
-        }
-
-        // Adiciona o jogador de computador ao jogo e decide aleatoriamente quem joga
-        // primeiro se houver um jogador de computador
         if (m == 1) {
-            game.addComputerPlayer(computerPlayer);
+            // Pergunta ao usuario contra qual tipo de jogador de computador ele deseja
+            // jogar
+            kb.report("Deseja jogar contra NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2)? ");
+            int playerType = kb.getKeyboardInteger();
+
+            // Cria o jogador de computador com base na escolha do usuario
+            if (playerType == 1) {
+                computerPlayer1 = new NimPlayerBad(game);
+                kb.report("Voce escolheu jogar contra NimPlayerBad.\n");
+            } else if (playerType == 2) {
+                computerPlayer1 = new NimPlayerSuper(game);
+                kb.report("Voce escolheu jogar contra NimPlayerSuper.\n");
+            }
+
+            // Adiciona o jogador de computador ao jogo e decide aleatoriamente quem joga
+            // primeiro
+            game.addComputerPlayer(computerPlayer1);
             if (Math.random() < 0.5) {
                 game.setPlayer(TwoPlayerGame.PLAYER_ONE);
             } else {
                 game.setPlayer(TwoPlayerGame.PLAYER_TWO);
             }
-        }
-        // Adiciona dois jogadores de computador ao jogo se o usuário escolher dois
-        // jogadores de computador
-        else if (m == 2) {
-            game.addComputerPlayer(new NimPlayerBad(game));
-            game.addComputerPlayer(new NimPlayerSuper(game));
+        } else if (m == 2) {
+            // Pergunta ao usuario qual tipo de jogador de computador sera Player 1
+            kb.report("Escolha o jogador para Player 1 - NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2): ");
+            int choice1 = kb.getKeyboardInteger();
+            if (choice1 == 1) {
+                computerPlayer1 = new NimPlayerBad(game);
+                kb.report("Player 1 sera NimPlayerBad.\n");
+            } else {
+                computerPlayer1 = new NimPlayerSuper(game);
+                kb.report("Player 1 sera NimPlayerSuper.\n");
+            }
+
+            // Pergunta ao usuario qual tipo de jogador de computador sera Player 2
+            kb.report("Escolha o jogador para Player 2 - NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2): ");
+            int choice2 = kb.getKeyboardInteger();
+            if (choice2 == 1) {
+                computerPlayer2 = new NimPlayerBad(game);
+                kb.report("Player 2 sera NimPlayerBad.\n");
+            } else {
+                computerPlayer2 = new NimPlayerSuper(game);
+                kb.report("Player 2 sera NimPlayerSuper.\n");
+            }
+
+            // Adiciona ambos os jogadores de computador ao jogo
+            game.addComputerPlayer(computerPlayer1);
+            game.addComputerPlayer(computerPlayer2);
         }
 
         // Inicia o jogo
@@ -310,28 +332,28 @@ class KeyboardReader implements UserInterface {
 class NimPlayerSuper implements IPlayer {
     private OneRowNim game;
 
-    // Construtor que recebe uma instância do jogo OneRowNim como parâmetro.
+    // Construtor que recebe uma instancia do jogo OneRowNim como parametro.
     public NimPlayerSuper(OneRowNim game) {
         this.game = game;
     }
 
-    // Método que faz uma jogada calculando a jogada ideal com base no número de
+    // Metodo que faz uma jogada calculando a jogada ideal com base no numero de
     // palitos restantes.
     public String makeAMove(String prompt) {
         int sticksLeft = game.getSticks();
         int idealMove = (sticksLeft - 1) % (OneRowNim.MAX_PICKUP + 1);
         if (idealMove == 0)
-            idealMove = 1; // Se a jogada ideal for 0, defina-a como 1 para garantir uma jogada válida.
+            idealMove = 1; // Se a jogada ideal for 0, defina-a como 1 para garantir uma jogada valida.
         return "" + idealMove;
     }
     /*
-     * Esta estratégia é boa porque, se o jogador puder sempre deixar um número de
-     * palitos que seja um múltiplo do número máximo de palitos que podem ser pegos,
-     * ele poderá forçar o outro jogador a pegar o último palito, desde que ambos os
+     * Esta estrategia eh boa porque, se o jogador puder sempre deixar um numero de
+     * palitos que seja um multiplo do numero maximo de palitos que podem ser pegos,
+     * ele podera forcar o outro jogador a pegar o ultimo palito, desde que ambos os
      * jogadores continuem jogando de maneira ideal.
      */
 
-    // Método que retorna uma representação em string do jogador.
+    // Metodo que retorna uma representacao em string do jogador.
     public String toString() {
         return "NimPlayerSuper";
     }
