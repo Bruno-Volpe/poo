@@ -1,15 +1,23 @@
+
+//Guilherme Xavier 14575641
+//Bruno Volpe 14651980
 import java.io.*;
-/*
- * OneRowNim.java
- * The full version of One Row Nim. This version can be CLUIPlayable
- */
+
+import interfaces.CLUIPlayableGame;
+import interfaces.IGame;
+import interfaces.IPlayer;
+import interfaces.KeyboardReader;
+import interfaces.NimPlayerBad;
+import interfaces.OneRowNim;
+import interfaces.TwoPlayerGame;
+import interfaces.UserInterface;
 
 import java.awt.*;
 
 class NimPlayerBad implements IPlayer {
-    private OneRowNim game;
+    private OneRowNimSemInterface game;
 
-    public NimPlayerBad(OneRowNim game) {
+    public NimPlayerBad(OneRowNimSemInterface game) {
         this.game = game;
     }
 
@@ -23,25 +31,25 @@ class NimPlayerBad implements IPlayer {
     }
 
     public String toString() {
-        String className = this.getClass().toString(); // returns 'class NimPlayerBad'
-        return className.substring(5); // cut off the word 'class'
+        String className = this.getClass().toString();
+        return className.substring(5);
     }
-} // NimPlayerBad
+}
 
-public class OneRowNim extends TwoPlayerGame implements CLUIPlayableGame {
+public class OneRowNimSemInterface extends TwoPlayerGame implements CLUIPlayableGame {
     public static final int MAX_PICKUP = 3;
     public static final int MAX_STICKS = 11;
 
     private int nSticks = MAX_STICKS;
 
-    public OneRowNim() {
+    public OneRowNimSemInterface() {
     } // Constructors
 
-    public OneRowNim(int sticks) {
+    public OneRowNimSemInterface(int sticks) {
         nSticks = sticks;
     }
 
-    public OneRowNim(int sticks, int starter) {
+    public OneRowNimSemInterface(int sticks, int starter) {
         nSticks = sticks;
         setPlayer(starter);
     }
@@ -146,49 +154,74 @@ public class OneRowNim extends TwoPlayerGame implements CLUIPlayableGame {
     }
 
     public static void main(String args[]) {
-        KeyboardReader kb = new KeyboardReader();
-        OneRowNim game = new OneRowNim(); // Inicializa o jogo com o numero maximo de palitos
+        KeyboardReader kb = new KeyboardReader(); // Cria um leitor de teclado para entrada de dados
+        OneRowNimSemInterface game = new OneRowNimSemInterface(); // Inicializa o jogo com o numero maximo de palitos
 
+        // Pergunta ao usuario quantos jogadores de computador estao jogando
         kb.report("Bem-vindo ao One Row Nim! Quantos computadores estao jogando (0, 1, ou 2)? ");
         int m = kb.getKeyboardInteger();
 
-        kb.report("Deseja jogar contra NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2)? ");
-        int playerType = kb.getKeyboardInteger();
-        IPlayer computerPlayer = null;
-
-        if (playerType == 1) {
-            computerPlayer = new NimPlayerBad(game);
-            kb.report("Voce escolheu jogar contra NimPlayerBad.\n");
-        } else if (playerType == 2) {
-            computerPlayer = new NimPlayerSuper(game);
-            kb.report("Voce escolheu jogar contra NimPlayerSuper.\n");
-        }
+        IPlayer computerPlayer1 = null;
+        IPlayer computerPlayer2 = null;
 
         if (m == 1) {
-            game.addComputerPlayer(computerPlayer);
+            // Pergunta ao usuario contra qual tipo de jogador de computador ele deseja
+            // jogar
+            kb.report("Deseja jogar contra NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2)? ");
+            int playerType = kb.getKeyboardInteger();
+
+            // Cria o jogador de computador com base na escolha do usuario
+            if (playerType == 1) {
+                computerPlayer1 = new NimPlayerBad(game);
+                kb.report("Voce escolheu jogar contra NimPlayerBad.\n");
+            } else if (playerType == 2) {
+                computerPlayer1 = new NimPlayerSuper(game);
+                kb.report("Voce escolheu jogar contra NimPlayerSuper.\n");
+            }
+
+            // Adiciona o jogador de computador ao jogo e decide aleatoriamente quem joga
+            // primeiro
+            game.addComputerPlayer(computerPlayer1);
             if (Math.random() < 0.5) {
                 game.setPlayer(TwoPlayerGame.PLAYER_ONE);
             } else {
                 game.setPlayer(TwoPlayerGame.PLAYER_TWO);
             }
         } else if (m == 2) {
-            game.addComputerPlayer(new NimPlayerBad(game));
-            game.addComputerPlayer(new NimPlayerSuper(game));
+            // Pergunta ao usuario qual tipo de jogador de computador sera Player 1
+            kb.report("Escolha o jogador para Player 1 - NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2): ");
+            int choice1 = kb.getKeyboardInteger();
+            if (choice1 == 1) {
+                computerPlayer1 = new NimPlayerBad(game);
+                kb.report("Player 1 sera NimPlayerBad.\n");
+            } else {
+                computerPlayer1 = new NimPlayerSuper(game);
+                kb.report("Player 1 sera NimPlayerSuper.\n");
+            }
+
+            // Pergunta ao usuario qual tipo de jogador de computador sera Player 2
+            kb.report("Escolha o jogador para Player 2 - NimPlayerBad (digite 1) ou NimPlayerSuper (digite 2): ");
+            int choice2 = kb.getKeyboardInteger();
+            if (choice2 == 1) {
+                computerPlayer2 = new NimPlayerBad(game);
+                kb.report("Player 2 sera NimPlayerBad.\n");
+            } else {
+                computerPlayer2 = new NimPlayerSuper(game);
+                kb.report("Player 2 sera NimPlayerSuper.\n");
+            }
+
+            // Adiciona ambos os jogadores de computador ao jogo
+            game.addComputerPlayer(computerPlayer1);
+            game.addComputerPlayer(computerPlayer2);
         }
 
+        // Inicia o jogo
         game.play(kb);
     }
 
 } // OneRowNim class
 
 interface IPlayer {
-    /**
-     * makeAMove() defines how a move is made. It is meant
-     * to be implemented by any object that plays the game.
-     *
-     * @param prompt is a String that prompts the player for a move.
-     * @return a String that describes the player's move
-     */
     public String makeAMove(String prompt);
 }
 
@@ -207,13 +240,6 @@ interface UserInterface {
 }
 
 interface CLUIPlayableGame extends IGame {
-
-    /**
-     * play() implements the play loop for a game that
-     * interfaces to a UserInterface. It is meant to
-     * be implented by games that support a command-line
-     * interface.
-     */
     public abstract void play(UserInterface ui);
 }
 
@@ -225,11 +251,6 @@ abstract class TwoPlayerGame {
     protected int nComputers = 0; // How many computer players
     protected IPlayer computer1, computer2; // Computers are IPlayers
 
-    /**
-     * setPlayer() sets which player makes the first move.
-     *
-     * @param starter, an int representing PLAYER_ONE or PLAYER_TWOI
-     */
     public void setPlayer(int starter) {
         if (starter == PLAYER_TWO)
             onePlaysNext = false;
@@ -237,11 +258,6 @@ abstract class TwoPlayerGame {
             onePlaysNext = true;
     } // setPlayer()
 
-    /**
-     * getPlayer() returns an int representing whose turn it it.
-     *
-     * @return an int representing PLAYER_ONE or PLAYER_TWO.
-     */
     public int getPlayer() {
         if (onePlaysNext)
             return PLAYER_ONE;
@@ -249,36 +265,18 @@ abstract class TwoPlayerGame {
             return PLAYER_TWO;
     } // getPlayer()
 
-    /**
-     * changePlayer() toggles between PLAYER_ONE or PLAYER_TWO.
-     */
     public void changePlayer() {
         onePlaysNext = !onePlaysNext;
     } // changePlayer
 
-    /**
-     * getNComputers() returns the number of computers playing
-     *
-     * @return an int representing the number of computer players
-     */
     public int getNComputers() {
         return nComputers;
     }
 
-    /**
-     * getRules() returns a String describing the rules of the game.
-     *
-     * @return a String giving the game's rules.
-     */
     public String getRules() {
         return "The rules of this game are: ";
     }
 
-    /**
-     * addComputerPlayer() adds to the number of computer players.
-     *
-     * @param player is an IPlayer
-     */
     public void addComputerPlayer(IPlayer player) {
         if (nComputers == 0)
             computer2 = player;
@@ -289,16 +287,8 @@ abstract class TwoPlayerGame {
         ++nComputers;
     }
 
-    /**
-     * gameOver() defines when the game is over. It is meant to be
-     * implemented in subclasses.
-     */
     public abstract boolean gameOver(); // Abstract Methods
 
-    /**
-     * getWinner() defines who wins the game. It is meant to be
-     * implemented in subclasses.
-     */
     public abstract String getWinner();
 } // TwoPlayerGame
 
@@ -309,66 +299,34 @@ class KeyboardReader implements UserInterface {
 
     private BufferedReader reader;
 
-    /**
-     * KeyboardReader() constructor creates a BufferedReader that
-     * is used for command-line and console I/O.
-     */
     public KeyboardReader() {
         reader = new BufferedReader(new InputStreamReader(System.in));
     }
 
-    /**
-     * getKeyboardInput() returns input read from the keyboard.
-     */
     public String getKeyboardInput() {
         return readKeyboard();
     }
 
-    /**
-     * getKeyboardInput() returns an integer read from the keyboard.
-     */
     public int getKeyboardInteger() {
         return Integer.parseInt(readKeyboard());
     }
 
-    /**
-     * getKeyboardInput() returns a double value read from the keyboard.
-     */
     public double getKeyboardDouble() {
         return Double.parseDouble(readKeyboard());
     }
 
-    /**
-     * getUserInput() is a method of the UserInterface class. It
-     * returns input read from the keyboard.
-     */
     public String getUserInput() {
         return getKeyboardInput();
     }
 
-    /**
-     * report() is a method of the UserInterface class. It
-     * prints its parameter.
-     *
-     * @param s is the String prompt
-     */
     public void report(String s) {
         System.out.print(s);
     }
 
-    /**
-     * display() prints its parameter.
-     */
     public void display(String s) {
         System.out.print(s);
     }
 
-    /**
-     * readKeyboard() reads a line of input from the keyboard
-     * where reader is a BufferedReader.
-     *
-     * @return a String storing a line read from the keyboard.
-     */
     private String readKeyboard() {
         String line = "";
         try {
@@ -380,21 +338,34 @@ class KeyboardReader implements UserInterface {
     }
 }
 
+// Esta classe define um jogador chamado NimPlayerSuper que implementa a
+// interface IPlayer.
+// Representa um jogador no jogo One Row Nim.
 class NimPlayerSuper implements IPlayer {
-    private OneRowNim game;
+    private OneRowNimSemInterface game;
 
-    public NimPlayerSuper(OneRowNim game) {
+    // Construtor que recebe uma instancia do jogo OneRowNim como parametro.
+    public NimPlayerSuper(OneRowNimSemInterface game) {
         this.game = game;
     }
 
+    // Metodo que faz uma jogada calculando a jogada ideal com base no numero de
+    // palitos restantes.
     public String makeAMove(String prompt) {
         int sticksLeft = game.getSticks();
-        int idealMove = (sticksLeft - 1) % (OneRowNim.MAX_PICKUP + 1);
+        int idealMove = (sticksLeft - 1) % (OneRowNimSemInterface.MAX_PICKUP + 1);
         if (idealMove == 0)
-            idealMove = 1; // If no ideal move, pick 1 stick
+            idealMove = 1; // Se a jogada ideal for 0, defina-a como 1 para garantir uma jogada valida.
         return "" + idealMove;
     }
+    /*
+     * Esta estrategia eh boa porque, se o jogador puder sempre deixar um numero de
+     * palitos que seja um multiplo do numero maximo de palitos que podem ser pegos,
+     * ele podera forcar o outro jogador a pegar o ultimo palito, desde que ambos os
+     * jogadores continuem jogando de maneira ideal.
+     */
 
+    // Metodo que retorna uma representacao em string do jogador.
     public String toString() {
         return "NimPlayerSuper";
     }
