@@ -1,22 +1,135 @@
-import java.awt.*;
-import java.awt.event.*;
+// Bruno Giacomini Volpe - 14651980
+// Guilherme Aureliano Xavier - 14575641
+
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-class OneRowNim {
-    public static final int MAX_PICKUP = 3; // Número máximo de palitos que podem ser retirados em uma jogada
-    public static final int MAX_STICKS = 11; // Número máximo de palitos no jogo
+public class OneRowNimGUI extends JFrame {
+    private OneRowNim game;
+    private JTextField sticksInputField;
+    private JTextArea gameStateArea;
+    private JButton takeSticksButton;
+    private JButton resetGameButton;
 
-    private int nSticks = MAX_STICKS; // Número atual de palitos no jogo
-    private boolean playerOneTurn = true; // Indica se é a vez do jogador um
+    public OneRowNimGUI(OneRowNim game) {
+        this.game = game; // Pass the game instance
 
-    // Método para retirar palitos do jogo
+        // Set up the main window
+        setTitle("One Row Nim Game");
+        setSize(500, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create main panel components
+        gameStateArea = new JTextArea(10, 40);
+        gameStateArea.setEditable(false);
+        sticksInputField = new JTextField(5);
+        takeSticksButton = new JButton("Take Sticks");
+        resetGameButton = new JButton("Reset Game");
+
+        // Add action listeners for main panel buttons
+        takeSticksButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                handleTakeSticks();
+            }
+        });
+
+        resetGameButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+            }
+        });
+
+        // Layout main panel components
+        JPanel inputPanel = new JPanel();
+        inputPanel.add(new JLabel("Enter sticks to take:"));
+        inputPanel.add(sticksInputField);
+        inputPanel.add(takeSticksButton);
+
+        JPanel controlPanel = new JPanel();
+        controlPanel.add(resetGameButton);
+
+        setLayout(new BorderLayout());
+        add(new JScrollPane(gameStateArea), BorderLayout.CENTER);
+        add(inputPanel, BorderLayout.NORTH);
+        add(controlPanel, BorderLayout.SOUTH);
+
+        // Initialize game state
+        updateGameState();
+    }
+
+    private void handleTakeSticks() {
+        try {
+            int sticks = Integer.parseInt(sticksInputField.getText());
+            if (game.takeSticks(sticks)) {
+                game.changePlayer();
+                updateGameState();
+                if (game.gameOver()) {
+                    gameStateArea.append("\nGame Over! Winner: Player " + game.getWinner() + "\n");
+                    takeSticksButton.setEnabled(false);
+                }
+            } else {
+                gameStateArea.append("\nInvalid move. Try again.\n");
+            }
+        } catch (NumberFormatException ex) {
+            gameStateArea.append("\nInvalid input. Enter a number.\n");
+        }
+    }
+
+    private void resetGame() {
+        game.reset(); // Reset the game
+        updateGameState();
+        takeSticksButton.setEnabled(true);
+    }
+
+    private void updateGameState() {
+        gameStateArea.setText(game.reportGameState());
+        sticksInputField.setText("");
+        sticksInputField.requestFocus();
+    }
+
+    public static void main(String[] args) {
+        int numPlayers = Integer.parseInt(JOptionPane.showInputDialog("Enter number of players (1 or 2):"));
+        OneRowNim game = new OneRowNim();
+        if (numPlayers == 1) {
+            game.addComputerPlayer(new NimPlayerBad(game));
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                OneRowNimGUI gui = new OneRowNimGUI(game);
+                gui.setVisible(true);
+            }
+        });
+    }
+}
+
+// Implementation of the OneRowNim class
+class OneRowNim extends TwoPlayerGame implements CLUIPlayableGame {
+    public static final int MAX_PICKUP = 3;
+    public static final int MAX_STICKS = 11;
+
+    private int nSticks = MAX_STICKS;
+
+    public OneRowNim() {
+    }
+
+    public OneRowNim(int sticks) {
+        nSticks = sticks;
+    }
+
+    public OneRowNim(int sticks, int starter) {
+        nSticks = sticks;
+        setPlayer(starter);
+    }
+
     public boolean takeSticks(int num) {
-        if (num < 1 || num > MAX_PICKUP || num > nSticks) { // Verifica se o número de palitos a ser retirado é válido
+        if (num < 1 || num > MAX_PICKUP || num > nSticks)
             return false;
-        } else {
-            nSticks -= num;
-            playerOneTurn = !playerOneTurn; // Alterna a vez do jogador
-            return true; // Retorna verdadeiro se a jogada for válida
+        else {
+            nSticks = nSticks - num;
+            return true;
         }
     }
 
@@ -24,96 +137,150 @@ class OneRowNim {
         return nSticks;
     }
 
+    public void reset() {
+        nSticks = MAX_STICKS;
+        onePlaysNext = true;
+    }
+
+    public String getRules() {
+        return "\n*** The Rules of One Row Nim ***\n" +
+                "(1) A number of sticks between 7 and " + MAX_STICKS + " is chosen.\n" +
+                "(2) Two players alternate making moves.\n" +
+                "(3) A move consists of subtracting between 1 and\n\t" +
+                MAX_PICKUP + " sticks from the current number of sticks.\n" +
+                "(4) A player who cannot leave a positive\n\t" +
+                " number of sticks for the other player loses.\n";
+    }
+
     public boolean gameOver() {
-        return nSticks <= 0; // Retorna verdadeiro se não houver mais palitos no jogo
+        return (nSticks <= 0);
     }
 
-    // Método para obter o vencedor do jogo
     public String getWinner() {
-        return playerOneTurn ? "Player Two" : "Player One"; // Retorna o nome do jogador vencedor
+        if (gameOver())
+            return "" + getPlayer();
+        return "The game is not over yet.";
     }
 
-    // Método para obter o estado atual do jogo
-    public String getGameState() {
-        if (gameOver()) { // Verifica se o jogo acabou
-            return "Game over! Winner is " + getWinner();
-        } else {
-            return "Sticks left: " + nSticks + ". " + (playerOneTurn ? "Player One's turn." : "Player Two's turn.");
+    public String getGamePrompt() {
+        return "\nYou can pick up between 1 and " + Math.min(MAX_PICKUP, nSticks) + " : ";
+    }
+
+    public String reportGameState() {
+        if (!gameOver())
+            return ("\nSticks left: " + getSticks() + " Who's turn: Player " + getPlayer());
+        else
+            return ("\nSticks left: " + getSticks() + " Game over! Winner is Player " + getWinner() + "\n");
+    }
+
+    public void play(UserInterface ui) {
+        // Method not used in GUI
+    }
+
+    public String submitUserMove(String theMove) {
+        int sticks = Integer.parseInt(theMove);
+        if (takeSticks(sticks)) {
+            changePlayer();
+            if (gameOver()) {
+                return reportGameState() + "\nGame won by player" + getWinner() + "\n";
+            } else {
+                return reportGameState() + getGamePrompt();
+            }
         }
+        return "\nOops. " + sticks + " is an illegal move." + getGamePrompt();
     }
 
-    // Método para reiniciar o jogo
-    public void resetGame() {
-        nSticks = MAX_STICKS; // Reseta o número de palitos para o máximo
-        playerOneTurn = true; // Define a vez do jogador um
+    public void draw(Graphics g) {
+        g.setColor(Color.red);
+        for (int k = 1; k <= nSticks; k++) {
+            g.drawLine(10 + k * 10, 10, 10 + k * 10, 60);
+        }
     }
 }
 
-// Classe OneRowNimGUI que implementa a interface gráfica do jogo
-public class OneRowNimGUI extends JFrame implements ActionListener {
-    private OneRowNim game;
-    private JTextField userInput;
-    private JTextArea gameDisplay;
-    private JButton takeSticksButton, resetButton;
+interface IPlayer {
+    public String makeAMove(String prompt);
+}
 
-    // Construtor da classe
-    public OneRowNimGUI() {
-        game = new OneRowNim(); // Cria uma instância do jogo
-        setTitle("One Row Nim");
-        setSize(400, 300);
-        setLayout(new BorderLayout()); // Define o layout da janela como BorderLayout
+interface IGame {
+    public String getGamePrompt();
 
-        gameDisplay = new JTextArea();
-        add(new JScrollPane(gameDisplay), BorderLayout.CENTER); // Adiciona a área de texto com barra de rolagem ao
-                                                                // centro da janela
+    public String reportGameState();
+}
 
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new FlowLayout());
+interface UserInterface {
+    public String getUserInput();
 
-        JLabel promptLabel = new JLabel("Enter number of sticks to take:");
-        inputPanel.add(promptLabel);
+    public void report(String s);
 
-        userInput = new JTextField(5);
-        inputPanel.add(userInput);
+    public void reportWinner(String winner);
+}
 
-        takeSticksButton = new JButton("Take Sticks");
-        takeSticksButton.addActionListener(this); // Listenner, igual JS
-        inputPanel.add(takeSticksButton);
+interface CLUIPlayableGame extends IGame {
+    public void play(UserInterface ui);
+}
 
-        resetButton = new JButton("Reset Game");
-        resetButton.addActionListener(this); // Listenner, igual JS
-        inputPanel.add(resetButton);
+abstract class TwoPlayerGame {
+    public static final int PLAYER_ONE = 1;
+    public static final int PLAYER_TWO = 2;
 
-        add(inputPanel, BorderLayout.SOUTH); // Adiciona o painel de entrada na parte inferior da janela
+    protected boolean onePlaysNext = true;
+    protected int nComputers = 0;
+    protected IPlayer computer1, computer2;
 
-        gameDisplay.setText(game.getGameState()); // Exibe o estado inicial do jogo na área de texto
+    public void setPlayer(int starter) {
+        onePlaysNext = (starter == PLAYER_ONE);
     }
 
-    // Método para lidar com eventos de ação - como se fosse o onClick do JS
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == takeSticksButton) { // Verifica se o evento foi disparado pelo botão de retirar palitos
-            String input = userInput.getText(); // Obtém o texto digitado pelo usuário, como se fosse o value do JS
-            try {
-                int sticks = Integer.parseInt(input); // Converte o texto em um número inteiro
-                if (game.takeSticks(sticks)) { // Verifica se a jogada é válida
-                    gameDisplay.setText(game.getGameState()); // Como se fosse o innerHTML do JS
-                } else {
-                    gameDisplay.setText("Invalid move. Try again.\n" + game.getGameState());
-                }
-            } catch (NumberFormatException ex) {
-                gameDisplay.setText("Please enter a valid number.\n" + game.getGameState());
-            }
-        } else if (e.getSource() == resetButton) { // Verifica se o evento foi disparado pelo botão de reiniciar o jogo
-            game.resetGame(); // Reinicia o jogo
-            gameDisplay.setText(game.getGameState()); // Atualiza a área de texto com o novo estado do jogo
+    public int getPlayer() {
+        return onePlaysNext ? PLAYER_ONE : PLAYER_TWO;
+    }
+
+    public void changePlayer() {
+        onePlaysNext = !onePlaysNext;
+    }
+
+    public int getNComputers() {
+        return nComputers;
+    }
+
+    public String getRules() {
+        return "The rules of this game are: ";
+    }
+
+    public void addComputerPlayer(IPlayer player) {
+        if (nComputers == 0) {
+            computer1 = player;
+        } else if (nComputers == 1) {
+            computer2 = player;
         }
-        userInput.setText(""); // Limpa o campo de entrada
+        nComputers++;
     }
 
-    // Método principal para iniciar o jogo
-    public static void main(String[] args) {
-        OneRowNimGUI frame = new OneRowNimGUI(); // Cria uma instância da classe OneRowNimGUI
-        frame.setVisible(true); // Torna a janela visível
+    public abstract boolean gameOver();
+
+    public abstract String getWinner();
+}
+
+// Example IPlayer implementations
+class NimPlayerBad implements IPlayer {
+    private OneRowNim game;
+
+    public NimPlayerBad(OneRowNim game) {
+        this.game = game;
+    }
+
+    public String makeAMove(String prompt) {
+        return "" + randomMove();
+    }
+
+    private int randomMove() {
+        int sticksLeft = game.getSticks();
+        return 1 + (int) (Math.random() * Math.min(sticksLeft, game.MAX_PICKUP));
+    }
+
+    public String toString() {
+        String className = this.getClass().toString();
+        return className.substring(5);
     }
 }

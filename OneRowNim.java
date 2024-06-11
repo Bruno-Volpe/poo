@@ -2,22 +2,12 @@
 //Guilherme Xavier 14575641
 //Bruno Volpe 14651980
 import java.io.*;
-
-import interfaces.CLUIPlayableGame;
-import interfaces.IGame;
-import interfaces.IPlayer;
-import interfaces.KeyboardReader;
-import interfaces.NimPlayerBad;
-import interfaces.OneRowNim;
-import interfaces.TwoPlayerGame;
-import interfaces.UserInterface;
-
 import java.awt.*;
 
 class NimPlayerBad implements IPlayer {
-    private OneRowNimSemInterface game;
+    private OneRowNim game;
 
-    public NimPlayerBad(OneRowNimSemInterface game) {
+    public NimPlayerBad(OneRowNim game) {
         this.game = game;
     }
 
@@ -36,20 +26,20 @@ class NimPlayerBad implements IPlayer {
     }
 }
 
-public class OneRowNimSemInterface extends TwoPlayerGame implements CLUIPlayableGame {
+public class OneRowNim extends TwoPlayerGame implements CLUIPlayableGame {
     public static final int MAX_PICKUP = 3;
     public static final int MAX_STICKS = 11;
 
     private int nSticks = MAX_STICKS;
 
-    public OneRowNimSemInterface() {
+    public OneRowNim() {
     } // Constructors
 
-    public OneRowNimSemInterface(int sticks) {
+    public OneRowNim(int sticks) {
         nSticks = sticks;
     }
 
-    public OneRowNimSemInterface(int sticks, int starter) {
+    public OneRowNim(int sticks, int starter) {
         nSticks = sticks;
         setPlayer(starter);
     }
@@ -155,7 +145,7 @@ public class OneRowNimSemInterface extends TwoPlayerGame implements CLUIPlayable
 
     public static void main(String args[]) {
         KeyboardReader kb = new KeyboardReader(); // Cria um leitor de teclado para entrada de dados
-        OneRowNimSemInterface game = new OneRowNimSemInterface(); // Inicializa o jogo com o numero maximo de palitos
+        OneRowNim game = new OneRowNim(); // Inicializa o jogo com o numero maximo de palitos
 
         // Pergunta ao usuario quantos jogadores de computador estao jogando
         kb.report("Bem-vindo ao One Row Nim! Quantos computadores estao jogando (0, 1, ou 2)? ");
@@ -342,10 +332,10 @@ class KeyboardReader implements UserInterface {
 // interface IPlayer.
 // Representa um jogador no jogo One Row Nim.
 class NimPlayerSuper implements IPlayer {
-    private OneRowNimSemInterface game;
+    private OneRowNim game;
 
     // Construtor que recebe uma instancia do jogo OneRowNim como parametro.
-    public NimPlayerSuper(OneRowNimSemInterface game) {
+    public NimPlayerSuper(OneRowNim game) {
         this.game = game;
     }
 
@@ -353,7 +343,7 @@ class NimPlayerSuper implements IPlayer {
     // palitos restantes.
     public String makeAMove(String prompt) {
         int sticksLeft = game.getSticks();
-        int idealMove = (sticksLeft - 1) % (OneRowNimSemInterface.MAX_PICKUP + 1);
+        int idealMove = (sticksLeft - 1) % (OneRowNim.MAX_PICKUP + 1);
         if (idealMove == 0)
             idealMove = 1; // Se a jogada ideal for 0, defina-a como 1 para garantir uma jogada valida.
         return "" + idealMove;

@@ -1,0 +1,5 @@
+Tue Jun 04 19:31:46 BRT 2024 - java.io.FileNotFoundException: users.txt (No such file or directory)
+Tue Jun 04 19:31:46 BRT 2024 - java.lang.NullPointerException
+Tue Jun 04 19:31:46 BRT 2024 - java.lang.NumberFormatException: For input string: "invalidID"
+Tue Jun 04 19:35:56 BRT 2024 - java.lang.NullPointerException
+Tue Jun 04 19:36:01 BRT 2024 - java.lang.NullPointerException

@@ -93,8 +93,9 @@ public class Calculator extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Launching the application
-        SwingUtilities.invokeLater(() -> new Calculator().setVisible(true));
+        // Instanciando e tornando a calculadora visível
+        Calculator calculator = new Calculator();
+        calculator.setVisible(true);
     }
 }
 
